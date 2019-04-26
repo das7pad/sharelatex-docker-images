@@ -1,0 +1,9 @@
+shell_escape_commands = \
+bibtex,bibtex8,\
+extractbb,\
+gnuplot,\
+gregorio,\
+kpsewhich,\
+makeindex,\
+repstopdf,\
+texosquery-jre8,\

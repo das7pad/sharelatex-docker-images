@@ -40,11 +40,15 @@ RUN set -ex \
 
 # Install dependencies
 #  - ghostscript
+#  - gnuplot
 RUN apt-get update \
 &&  apt-get install --yes --no-install-recommends \
       ghostscript \
+      gnuplot-nox \
 &&  rm -rf \
       /var/lib/apt/lists/*
+
+COPY root /
 
 # Add the runtime user for compiles.
 RUN adduser \

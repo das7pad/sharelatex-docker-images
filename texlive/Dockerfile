@@ -40,11 +40,15 @@ RUN set -ex \
 
 # Install dependencies
 #  - ghostscript
+#  - pygments for minted
 RUN apt-get update \
 &&  apt-get install --yes --no-install-recommends \
       ghostscript \
+      python-pygments \
 &&  rm -rf \
       /var/lib/apt/lists/*
+
+COPY root /
 
 # Add the runtime user for compiles.
 RUN adduser \

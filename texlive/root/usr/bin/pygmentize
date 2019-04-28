@@ -1,0 +1,29 @@
+#!/usr/bin/python
+
+import sys
+import pygments.cmdline
+
+
+def main():
+    args = []
+    output = None
+    for arg in sys.argv:
+        if arg != '>':
+            args.append(arg)
+            continue
+        output = sys.argv[-1]
+        break
+
+    sys.argv = args
+
+    if output:
+        sys.stdout = open(output, 'w')
+
+    try:
+        sys.exit(pygments.cmdline.main(sys.argv))
+    except KeyboardInterrupt:
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

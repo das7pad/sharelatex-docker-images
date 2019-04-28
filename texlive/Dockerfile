@@ -45,6 +45,9 @@ RUN apt-get update \
 &&  apt-get install --yes --no-install-recommends \
       ghostscript \
       python-pygments \
+# patch minted: drop the install check for pygments
+&&  sed -i -e 's/which\ \#1\ &&\ //' \
+ /usr/local/texlive/${TEXLIVE_VERSION}/texmf-dist/tex/latex/minted/minted*.sty \
 &&  rm -rf \
       /var/lib/apt/lists/*
 

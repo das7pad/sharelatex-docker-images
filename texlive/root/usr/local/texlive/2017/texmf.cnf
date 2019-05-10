@@ -5,5 +5,9 @@ gnuplot,\
 gregorio,\
 kpsewhich,\
 makeindex,\
+mkdir,\
+pygmentize,\
 repstopdf,\
+rm,\
 texosquery-jre8,\
+touch,\

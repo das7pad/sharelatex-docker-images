@@ -40,10 +40,12 @@ RUN set -ex \
 
 # Install dependencies
 #  - ghostscript
+#  - gnuplot
 #  - pygments for minted
 RUN apt-get update \
 &&  apt-get install --yes --no-install-recommends \
       ghostscript \
+      gnuplot-nox \
       python-pygments \
 # patch minted: drop the install check for pygments
 &&  sed -i -e 's/which\ \#1\ &&\ //' \

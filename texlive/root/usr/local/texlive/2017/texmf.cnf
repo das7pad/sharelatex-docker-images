@@ -1,0 +1,12 @@
+shell_escape_commands = \
+bibtex,bibtex8,\
+extractbb,\
+gregorio,\
+kpsewhich,\
+makeindex,\
+mkdir,\
+pygmentize,\
+repstopdf,\
+rm,\
+texosquery-jre8,\
+touch,\

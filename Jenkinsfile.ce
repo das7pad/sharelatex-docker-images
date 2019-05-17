@@ -1,0 +1,97 @@
+pipeline {
+  agent none
+  options {
+    timestamps()
+  }
+  stages {
+    stage('TexLive') {
+      agent {
+        label 'texlive'
+      }
+      environment {
+        IMAGE_BARE        = "$SHARELATEX_DOCKER_REPOS/texlive"
+        IMAGE_BRANCH      = "$IMAGE_BARE:$BRANCH_NAME"
+        IMAGE_BRANCH_DEV  = "$IMAGE_BARE:dev"
+        IMAGE             = "$IMAGE_BRANCH-$BUILD_NUMBER"
+        IMAGE_FINAL       = "$IMAGE_BARE:2017.1-full"
+      }
+      stages {
+        stage('Pull Cache') {
+          steps {
+            sh '''docker pull $IMAGE_BRANCH \
+                  && docker tag $IMAGE_BRANCH $IMAGE-cache \
+                  || (docker pull $IMAGE_BRANCH_DEV \
+                  && docker tag $IMAGE_BRANCH_DEV $IMAGE-cache \
+                  || echo 'Nothing cached yet!')
+            '''
+          }
+          post {
+            cleanup {
+              sh '''docker rmi \
+                      $IMAGE_BRANCH \
+                      $IMAGE_BRANCH_DEV \
+                      --force
+              '''
+            }
+          }
+        }
+        stage('Build Docker Image') {
+          steps {
+            sh '''docker build \
+                    --pull \
+                    --tag $IMAGE \
+                    --cache-from $IMAGE-cache \
+                    --build-arg TEXLIVE_SCHEME=full \
+                    --build-arg TEXLIVE_REPOSITORY=$TEXLIVE_REPOSITORY \
+                    texlive
+            '''
+          }
+        }
+        stage('Test Docker Image') {
+          steps {
+            sh '''docker run --rm $IMAGE which \
+                    latex \
+                    latexmk \
+                    lualatex  \
+                    pdflatex \
+                    xelatex \
+                    /opt/synctex \
+            '''
+          }
+        }
+        stage('Push Docker Image') {
+          steps {
+            sh 'docker push $IMAGE'
+            sh 'docker tag $IMAGE $IMAGE_BRANCH'
+            sh 'docker push $IMAGE_BRANCH'
+            sh 'docker tag $IMAGE $IMAGE_FINAL'
+            sh 'docker push $IMAGE_FINAL'
+          }
+          post {
+            cleanup {
+              sh '''docker rmi \
+                      $IMAGE_BRANCH \
+                      --force
+              '''
+              sh '''[[ -z $KEEP_TEXLIVE_IMAGE ]] && \
+                  docker rmi \
+                      $IMAGE_FINAL \
+                      --force \
+                  || echo 'Keeping final TexLive image as configured via ENV'
+              '''
+            }
+          }
+        }
+      }
+      post {
+        cleanup {
+          sh '''docker rmi \
+                  $IMAGE \
+                  $IMAGE-cache \
+                  --force
+          '''
+        }
+      }
+    }
+  }
+}

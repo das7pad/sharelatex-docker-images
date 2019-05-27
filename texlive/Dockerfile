@@ -62,3 +62,21 @@ RUN adduser \
       --system \
       --uid 1000 \
       tex
+
+ARG DATE
+ARG RELEASE
+ARG COMMIT
+LABEL \
+  org.opencontainers.image.created="$DATE" \
+  org.opencontainers.image.authors="Jakob Ackermann <das7pad@outlook.com>" \
+  org.opencontainers.image.url="https://github.com/das7pad/sharelatex-docker-images" \
+  org.opencontainers.image.documentation="" \
+  org.opencontainers.image.source="https://github.com/das7pad/sharelatex-docker-images" \
+  org.opencontainers.image.version="$RELEASE" \
+  org.opencontainers.image.revision="$COMMIT" \
+  org.opencontainers.image.vendor="Jakob Ackermann" \
+  org.opencontainers.image.licenses="AGPL-3.0" \
+  org.opencontainers.image.ref.name="$RELEASE" \
+  org.opencontainers.image.title="TexLive $TEXLIVE_VERSION $TEXLIVE_SCHEME" \
+  org.opencontainers.image.description="TexLive \
+with additional tools for the usage with the sharelatex/overleaf CLSI"

@@ -13,7 +13,8 @@ pipeline {
         IMAGE_BRANCH      = "$IMAGE_BARE:$BRANCH_NAME"
         IMAGE_BRANCH_DEV  = "$IMAGE_BARE:dev"
         IMAGE             = "$IMAGE_BRANCH-$BUILD_NUMBER"
-        RELEASE           = '2017.1-full'
+        SCHEME            = 'full'
+        RELEASE           = "2017.1-$SCHEME"
         IMAGE_FINAL       = "$IMAGE_BARE:$RELEASE"
       }
       stages {
@@ -41,7 +42,7 @@ pipeline {
             sh '''docker build \
                     --tag $IMAGE \
                     --cache-from $IMAGE-cache \
-                    --build-arg TEXLIVE_SCHEME=full \
+                    --build-arg TEXLIVE_SCHEME=$SCHEME \
                     --build-arg TEXLIVE_REPOSITORY=$TEXLIVE_REPOSITORY \
                     --build-arg COMMIT=$GIT_COMMIT \
                     --build-arg DATE=$(date --rfc-3339=s | sed 's/ /T/') \

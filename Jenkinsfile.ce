@@ -39,7 +39,6 @@ pipeline {
         stage('Build Docker Image') {
           steps {
             sh '''docker build \
-                    --pull \
                     --tag $IMAGE \
                     --cache-from $IMAGE-cache \
                     --build-arg TEXLIVE_SCHEME=full \

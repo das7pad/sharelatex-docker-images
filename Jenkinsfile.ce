@@ -4,96 +4,100 @@ pipeline {
     timestamps()
   }
   stages {
-    stage('TexLive') {
-      agent {
-        label 'texlive'
-      }
-      environment {
-        IMAGE_BARE        = "$SHARELATEX_DOCKER_REPOS/texlive"
-        IMAGE_BRANCH      = "$IMAGE_BARE:$BRANCH_NAME"
-        IMAGE_BRANCH_DEV  = "$IMAGE_BARE:dev"
-        IMAGE             = "$IMAGE_BRANCH-$BUILD_NUMBER"
-        SCHEME            = 'full'
-        RELEASE           = "2017.1-$SCHEME"
-        IMAGE_FINAL       = "$IMAGE_BARE:$RELEASE"
-      }
-      stages {
-        stage('Pull Cache') {
-          steps {
-            sh '''docker pull $IMAGE_BRANCH \
-                  && docker tag $IMAGE_BRANCH $IMAGE-cache \
-                  || (docker pull $IMAGE_BRANCH_DEV \
-                  && docker tag $IMAGE_BRANCH_DEV $IMAGE-cache \
-                  || echo 'Nothing cached yet!')
-            '''
+    stage('Fan out') {
+      parallel {
+        stage('Lint-Runner') {
+          // set KEEP_LINT_RUNNER_IMAGE=1
+          // to preserve to image with release tag on the builder node
+          agent {
+            label 'docker_builder'
+          }
+          environment {
+            TARGET = 'lint-runner'
+          }
+          stages {
+            stage('Pull Cache') {
+              steps {
+                sh 'make pull_cache'
+              }
+              post {
+                cleanup {
+                  sh 'make clean_pull_cache'
+                }
+              }
+            }
+            stage('Build Docker Image') {
+              steps {
+                sh 'make lint-runner/build'
+              }
+            }
+            stage('Test Docker Image') {
+              steps {
+                sh 'make lint-runner/test'
+              }
+            }
+            stage('Push Docker Image') {
+              steps {
+                sh 'make push'
+              }
+              post {
+                cleanup {
+                  sh 'make clean_push'
+                }
+              }
+            }
           }
           post {
             cleanup {
-              sh '''docker rmi \
-                      $IMAGE_BRANCH \
-                      $IMAGE_BRANCH_DEV \
-                      --force
-              '''
+              sh 'make clean'
             }
           }
         }
-        stage('Build Docker Image') {
-          steps {
-            sh '''docker build \
-                    --tag $IMAGE \
-                    --cache-from $IMAGE-cache \
-                    --build-arg TEXLIVE_SCHEME=$SCHEME \
-                    --build-arg TEXLIVE_REPOSITORY=$TEXLIVE_REPOSITORY \
-                    --build-arg COMMIT=$GIT_COMMIT \
-                    --build-arg DATE=$(date --rfc-3339=s | sed 's/ /T/') \
-                    --build-arg RELEASE=$RELEASE \
-                    texlive
-            '''
+        stage('TexLive') {
+          agent {
+            label 'texlive'
           }
-        }
-        stage('Test Docker Image') {
-          steps {
-            sh '''docker run --rm $IMAGE which \
-                    latex \
-                    latexmk \
-                    lualatex  \
-                    pdflatex \
-                    xelatex \
-                    /opt/synctex \
-            '''
+          environment {
+            TARGET          = 'texlive'
+            TEXLIVE_SCHEME  = 'full'
           }
-        }
-        stage('Push Docker Image') {
-          steps {
-            sh 'docker push $IMAGE'
-            sh 'docker tag $IMAGE $IMAGE_BRANCH'
-            sh 'docker push $IMAGE_BRANCH'
-            sh 'docker tag $IMAGE $IMAGE_FINAL'
-            sh 'docker push $IMAGE_FINAL'
+          stages {
+            stage('Pull Cache') {
+              steps {
+                sh 'make pull_cache'
+              }
+              post {
+                cleanup {
+                  sh 'make clean_pull_cache'
+                }
+              }
+            }
+            stage('Build Docker Image') {
+              steps {
+                sh 'make texlive/build'
+              }
+            }
+            stage('Test Docker Image') {
+              steps {
+                sh 'make texlive/test'
+              }
+            }
+            stage('Push Docker Image') {
+              steps {
+                sh 'make push'
+              }
+              post {
+                cleanup {
+                  sh 'make clean_push'
+                }
+              }
+            }
           }
           post {
             cleanup {
-              sh '''docker rmi \
-                      $IMAGE_BRANCH \
-                      --force
-              '''
-              sh '''[[ -z $KEEP_TEXLIVE_IMAGE ]] && \
-                  docker rmi \
-                      $IMAGE_FINAL \
-                      --force \
-                  || echo 'Keeping final TexLive image as configured via ENV'
-              '''
+              sh 'make clean'
             }
           }
-        }
-      }
-      post {
-        cleanup {
-          sh '''docker rmi \
-                  $IMAGE \
-                  $IMAGE-cache \
-                  --force
-          '''
         }
       }
     }

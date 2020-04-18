@@ -16,6 +16,11 @@ pipeline {
             TARGET = 'lint-runner'
           }
           stages {
+            stage('Pull node image') {
+              steps {
+                sh 'make pull_node'
+              }
+            }
             stage('Pull Cache') {
               steps {
                 sh 'make pull_cache'

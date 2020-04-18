@@ -5,7 +5,8 @@ RELEASE ?= $(shell git describe --tags --always | sed 's/-g/-/;s/^v//')
 
 TARGET ?= lint-runner
 
-SHARELATEX_DOCKER_REPOS ?= local/sharelatex
+DOCKER_REGISTRY ?= local
+SHARELATEX_DOCKER_REPOS ?= $(DOCKER_REGISTRY)/sharelatex
 IMAGE_BARE = $(SHARELATEX_DOCKER_REPOS)/$(TARGET)
 IMAGE_BRANCH_DEV = $(IMAGE_BARE):dev
 IMAGE_BRANCH = $(IMAGE_BARE):$(BRANCH_NAME)
@@ -31,6 +32,11 @@ clean_pull_cache:
 		$(IMAGE_BRANCH_DEV) \
 
 NODE_VERSION ?= 12.16.2
+IMAGE_NODE ?= $(DOCKER_REGISTRY)/node:$(NODE_VERSION)
+
+pull_node:
+	docker pull $(IMAGE_NODE)
+	docker tag $(IMAGE_NODE) node:$(NODE_VERSION)
 
 lint-runner/build:
 	docker build \

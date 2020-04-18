@@ -30,11 +30,14 @@ clean_pull_cache:
 		$(IMAGE_BRANCH) \
 		$(IMAGE_BRANCH_DEV) \
 
+NODE_VERSION ?= 12.16.2
+
 lint-runner/build:
 	docker build \
 		--tag $(IMAGE) \
 		--cache-from $(IMAGE)-cache \
 		--cache-from $(IMAGE) \
+		--build-arg NODE_VERSION=$(NODE_VERSION) \
 		--build-arg COMMIT=$(GIT_COMMIT) \
 		--build-arg DATE=$(shell date --rfc-3339=s | sed 's/ /T/') \
 		--build-arg RELEASE=$(RELEASE) \

@@ -1,4 +1,4 @@
-FROM node:12.16.1
+FROM node:12.16.2
 
 WORKDIR /lint-runner
 COPY root/lint-runner/package*.json /lint-runner/

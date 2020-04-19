@@ -1,6 +1,0 @@
-#!/bin/sh
-
-export NODE_PATH=/lint-runner/node_modules
-export PATH="$NODE_PATH/.bin/:$PATH"
-
-exec eslint "$@"

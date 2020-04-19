@@ -3,7 +3,7 @@ BUILD_NUMBER ?= local
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 RELEASE ?= $(shell git describe --tags --always | sed 's/-g/-/;s/^v//')
 
-TARGET ?= lint-runner
+TARGET ?= texlive
 
 DOCKER_REGISTRY ?= local
 SHARELATEX_DOCKER_REPOS ?= $(DOCKER_REGISTRY)/sharelatex
@@ -31,24 +31,6 @@ clean_pull_cache:
 		$(IMAGE_BRANCH) \
 		$(IMAGE_BRANCH_DEV) \
 
-NODE_VERSION ?= 12.16.2
-IMAGE_NODE ?= $(DOCKER_REGISTRY)/node:$(NODE_VERSION)
-
-pull_node:
-	docker pull $(IMAGE_NODE)
-	docker tag $(IMAGE_NODE) node:$(NODE_VERSION)
-
-lint-runner/build:
-	docker build \
-		--tag $(IMAGE) \
-		--cache-from $(IMAGE)-cache \
-		--cache-from $(IMAGE) \
-		--build-arg NODE_VERSION=$(NODE_VERSION) \
-		--build-arg COMMIT=$(GIT_COMMIT) \
-		--build-arg DATE=$(shell date --rfc-3339=s | sed 's/ /T/') \
-		--build-arg RELEASE=$(RELEASE) \
-		lint-runner
-
 TEXLIVE_VERSION ?= 2017
 TEXLIVE_SCHEME ?= basic
 TEXLIVE_MIRROR ?= http://ftp.math.utah.edu/pub/tex/
@@ -70,10 +52,6 @@ texlive/build:
 		--build-arg TEXLIVE_SCHEME=$(TEXLIVE_SCHEME) \
 		--build-arg TEXLIVE_VERSION=$(TEXLIVE_VERSION) \
 		texlive
-
-lint-runner/test:
-	docker run --rm $(IMAGE) eslint --version
-	docker run --rm $(IMAGE) prettier-eslint --version
 
 texlive/test:
 	docker run --rm $(IMAGE) which \
@@ -103,12 +81,6 @@ ifeq (master,$(BRANCH_NAME))
 	docker rmi --force $(IMAGE_BARE)
 endif
 
-ifeq (lint-runner,$(TARGET))
-# set KEEP_LINT_RUNNER_IMAGE=1 to skip this
-ifeq (,$(KEEP_LINT_RUNNER_IMAGE))
-	docker rmi --force $(IMAGE_FINAL)
-endif
-endif
 ifeq (texlive,$(TARGET))
 # set KEEP_TEXLIVE_IMAGE=1 to skip this
 ifeq (,$(KEEP_TEXLIVE_IMAGE))

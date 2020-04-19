@@ -6,58 +6,6 @@ pipeline {
   stages {
     stage('Fan out') {
       parallel {
-        stage('Lint-Runner') {
-          // set KEEP_LINT_RUNNER_IMAGE=1
-          // to preserve to image with release tag on the builder node
-          agent {
-            label 'docker_builder'
-          }
-          environment {
-            TARGET = 'lint-runner'
-          }
-          stages {
-            stage('Pull node image') {
-              steps {
-                sh 'make pull_node'
-              }
-            }
-            stage('Pull Cache') {
-              steps {
-                sh 'make pull_cache'
-              }
-              post {
-                cleanup {
-                  sh 'make clean_pull_cache'
-                }
-              }
-            }
-            stage('Build Docker Image') {
-              steps {
-                sh 'make lint-runner/build'
-              }
-            }
-            stage('Test Docker Image') {
-              steps {
-                sh 'make lint-runner/test'
-              }
-            }
-            stage('Push Docker Image') {
-              steps {
-                sh 'make push'
-              }
-              post {
-                cleanup {
-                  sh 'make clean_push'
-                }
-              }
-            }
-          }
-          post {
-            cleanup {
-              sh 'make clean'
-            }
-          }
-        }
         stage('TexLive') {
           agent {
             label 'texlive'

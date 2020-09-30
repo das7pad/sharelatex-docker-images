@@ -22,7 +22,7 @@ RUN set -ex \
 &&  echo "tlpdbopt_autobackup 0" >> /install-tl-unx/profile \
 &&  echo "tlpdbopt_install_docfiles 0" >> /install-tl-unx/profile \
 &&  echo "tlpdbopt_install_srcfiles 0" >> /install-tl-unx/profile \
-&&  echo "selected_scheme scheme-basic" >> /install-tl-unx/profile \
+&&  echo "selected_scheme scheme-${TEXLIVE_SCHEME}" >> /install-tl-unx/profile \
     \
 &&  TEXLIVE_INSTALL_ENV_NOCHECK=1 \
     TEXLIVE_INSTALL_NO_CONTEXT_CACHE=1 \
@@ -34,12 +34,7 @@ RUN set -ex \
 &&  tlmgr install --repository ${TEXLIVE_REPOSITORY} \
       latexmk \
       texcount \
-&&  rm -rf \
-      $(find /usr/local/texlive/ -name "*.log") \
-      /install-tl-unx
-
-RUN tlmgr install --repository ${TEXLIVE_REPOSITORY} \
-      scheme-${TEXLIVE_SCHEME} \
+&&  rm -rf /install-tl-unx \
 &&  find /usr/local/texlive/ -name "*.log" -delete
 
 # Install dependencies
